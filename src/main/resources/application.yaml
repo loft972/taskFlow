@@ -1,3 +1,12 @@
 spring:
   application:
     name: Task
+  datasource:
+    url: jdbc:postgresql://localhost:5432/TaskFlow
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

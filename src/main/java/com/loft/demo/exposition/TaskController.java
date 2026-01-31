@@ -32,4 +32,17 @@ public class TaskController {
         LOGGER.info("GEt REQUEST");
         return new ResponseEntity<>(taskService.findAll(), HttpStatus.OK);
     }
+
+    @PutMapping("/tasks/{id}")
+    public ResponseEntity<Task> miseAJourTask(@PathVariable Long id, @RequestParam String newTitle){
+        LOGGER.info("PUT REQUEST - id : {}, newTitle : {}", id, newTitle);
+        return new ResponseEntity(taskService.updateTask(id, newTitle), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/tasks/{id}")
+    public ResponseEntity<String> supprimerTaskk(@PathVariable Long id){
+        LOGGER.info("DELETE REQUEST ");
+        taskService.deleteTask(id);
+        return new ResponseEntity("File delete", HttpStatus.OK);
+    }
 }
