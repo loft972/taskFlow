@@ -1,14 +1,13 @@
 package com.loft.demo.repository;
 
-import com.loft.demo.domain.Task;
+import com.loft.demo.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<Task> findTaskByTitle(String title);
-
+    Optional<User> findByEmail(String email);
 }

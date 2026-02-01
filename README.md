@@ -43,10 +43,36 @@ Java 21 est une version LTS (Long Term Support) qui apporte de nombreuses foncti
 - **Virtual Threads** : Pour améliorer la concurrence
 - **Record Patterns** : Simplification du pattern matching
 - **Pattern Matching for switch** : Switch expressions améliorées
+- **Sealed Classes** : Hiérarchies de types fermées et exhaustives
 - **String Templates** (Preview) : Interpolation de chaînes
 - **Sequenced Collections** : Nouvelles interfaces pour les collections ordonnées
 
 **Exemple d'utilisation dans le projet :**
+
+**1. Sealed Classes pour le domain modeling**
+```java
+// Alternative moderne aux enums
+public sealed interface TaskStatus permits Todo, InProgress, Done {
+    String getLabel();
+}
+
+public record Todo() implements TaskStatus {
+    @Override
+    public String getLabel() { return "TODO"; }
+}
+
+public record InProgress() implements TaskStatus {
+    @Override
+    public String getLabel() { return "IN_PROGRESS"; }
+}
+
+public record Done() implements TaskStatus {
+    @Override
+    public String getLabel() { return "DONE"; }
+}
+```
+
+**2. Records pour les DTOs**
 ```java
 // Record pour les DTOs (alternative aux classes classiques)
 public record TaskRequest(
@@ -54,16 +80,28 @@ public record TaskRequest(
     String description,
     @NotNull TaskPriority priority
 ) {}
+```
 
-// Pattern matching for switch
+**3. Pattern matching for switch avec sealed classes**
+```java
 public String getTaskStatusMessage(TaskStatus status) {
     return switch (status) {
-        case TODO -> "Tâche à faire";
-        case IN_PROGRESS -> "En cours";
-        case DONE -> "Terminée";
+        case Todo t -> "Tâche à faire";
+        case InProgress ip -> "En cours de réalisation";
+        case Done d -> "Tâche terminée ✓";
     };
 }
+
+// Le compilateur garantit l'exhaustivité !
+// Si vous ajoutez un nouveau type à TaskStatus, le code ne compilera pas
+// tant que vous n'aurez pas géré ce cas dans le switch
 ```
+
+**Avantages des Sealed Classes sur les Enums :**
+- Chaque variante peut avoir ses propres propriétés et méthodes
+- Pattern matching exhaustif vérifié à la compilation
+- Plus flexible pour modéliser des domaines métiers complexes
+- Meilleure intégration avec les Records
 
 ---
 
@@ -99,7 +137,21 @@ src/main/java/com/taskflow/
 │   ├── Task.java
 │   ├── Project.java
 │   ├── Category.java
-│   └── Role.java (enum)
+│   ├── role/
+│   │   ├── Role.java (sealed interface)
+│   │   ├── UserRole.java (record)
+│   │   └── AdminRole.java (record)
+│   ├── status/
+│   │   ├── TaskStatus.java (sealed interface)
+│   │   ├── Todo.java (record)
+│   │   ├── InProgress.java (record)
+│   │   └── Done.java (record)
+│   └── priority/
+│       ├── TaskPriority.java (sealed interface)
+│       ├── Low.java (record)
+│       ├── Medium.java (record)
+│       ├── High.java (record)
+│       └── Urgent.java (record)
 │
 ├── repository/              # Repositories Spring Data
 │   ├── UserRepository.java
@@ -136,6 +188,12 @@ src/main/java/com/taskflow/
 - [ ] Configurer `application.properties` ou `application.yml`
 - [ ] Configurer la connexion à PostgreSQL
 - [ ] Ajouter les dépendances Maven nécessaires
+
+**Ressources à consulter :**
+- [Spring Boot Application Properties](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html)
+- [Configuration PostgreSQL avec Spring Boot](https://www.baeldung.com/spring-boot-postgresql-docker)
+- [Maven Dependencies Management](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)
+- [Spring Boot Starters Guide](https://www.baeldung.com/spring-boot-starters)
 
 **Dépendances à ajouter dans `pom.xml` :**
 ```xml
@@ -209,15 +267,286 @@ src/main/java/com/taskflow/
 </dependency>
 ```
 
-#### Étape 1.2 : Création des entités de base
+#### Étape 1.2 : Création des types avec Sealed Classes (Java 21)
+- [ ] Créer la sealed class `Role` avec les implémentations : UserRole, AdminRole
+- [ ] Créer la sealed class `TaskStatus` avec les implémentations : Todo, InProgress, Done
+- [ ] Créer la sealed class `TaskPriority` avec les implémentations : Low, Medium, High, Urgent
+
+**Pourquoi les Sealed Classes plutôt que les Enums ?**
+- Plus de flexibilité : chaque variante peut avoir ses propres propriétés et méthodes
+- Pattern matching exhaustif garanti par le compilateur
+- Meilleure expressivité du domaine métier
+- Possibilité d'ajouter des comportements spécifiques
+
+**Option 1 : Sealed Class simple (type algébrique)**
+```java
+public sealed interface TaskStatus permits Todo, InProgress, Done {
+    String getLabel();
+    String getColor();
+}
+
+public record Todo() implements TaskStatus {
+    @Override
+    public String getLabel() {
+        return "À faire";
+    }
+    
+    @Override
+    public String getColor() {
+        return "#808080";
+    }
+}
+
+public record InProgress() implements TaskStatus {
+    @Override
+    public String getLabel() {
+        return "En cours";
+    }
+    
+    @Override
+    public String getColor() {
+        return "#FFA500";
+    }
+}
+
+public record Done() implements TaskStatus {
+    @Override
+    public String getLabel() {
+        return "Terminée";
+    }
+    
+    @Override
+    public String getColor() {
+        return "#008000";
+    }
+}
+```
+
+**Option 2 : Sealed Class avec données (plus avancé)**
+```java
+public sealed interface TaskPriority permits Low, Medium, High, Urgent {
+    int getLevel();
+    String getLabel();
+    
+    // Pattern matching helper
+    default String getDescription() {
+        return switch (this) {
+            case Low l -> "Priorité basse";
+            case Medium m -> "Priorité moyenne";
+            case High h -> "Priorité haute";
+            case Urgent u -> "Urgent";
+        };
+    }
+}
+
+public record Low() implements TaskPriority {
+    @Override
+    public int getLevel() { return 1; }
+    
+    @Override
+    public String getLabel() { return "LOW"; }
+}
+
+public record Medium() implements TaskPriority {
+    @Override
+    public int getLevel() { return 2; }
+    
+    @Override
+    public String getLabel() { return "MEDIUM"; }
+}
+
+public record High() implements TaskPriority {
+    @Override
+    public int getLevel() { return 3; }
+    
+    @Override
+    public String getLabel() { return "HIGH"; }
+}
+
+public record Urgent() implements TaskPriority {
+    @Override
+    public int getLevel() { return 4; }
+    
+    @Override
+    public String getLabel() { return "URGENT"; }
+}
+```
+
+**Option 3 : Enum classique (plus simple pour débuter)**
+Si vous préférez commencer par quelque chose de plus simple, vous pouvez toujours utiliser les enums traditionnels :
+
+```java
+public enum TaskStatus {
+    TODO,
+    IN_PROGRESS,
+    DONE
+}
+
+public enum TaskPriority {
+    LOW,
+    MEDIUM,
+    HIGH,
+    URGENT
+}
+
+public enum Role {
+    USER,
+    ADMIN
+}
+```
+
+**Recommandation :** Commencez avec les enums pour la simplicité, puis refactorez vers les sealed classes une fois à l'aise avec les concepts de base.
+
+**Ressources à consulter :**
+- [Java Sealed Classes Official Guide](https://docs.oracle.com/en/java/javase/21/language/sealed-classes-and-interfaces.html)
+- [Sealed Classes Tutorial - Baeldung](https://www.baeldung.com/java-sealed-classes-interfaces)
+- [Pattern Matching with Sealed Classes](https://www.baeldung.com/java-pattern-matching-sealed-classes)
+- [Java Enums - Oracle Docs](https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html)
+- [Records vs Classes - When to Use What](https://www.baeldung.com/java-record-vs-final-class)
+
+#### Étape 1.3 : Création des entités de base
 - [ ] Créer l'entité `User` avec les champs : id, username, email, password, role, createdAt
 - [ ] Créer l'entité `Task` avec les champs : id, title, description, status, priority, dueDate, createdAt, updatedAt
 - [ ] Ajouter les annotations JPA appropriées (@Entity, @Id, @GeneratedValue, etc.)
 
+**Exemple d'entité Task avec Sealed Classes :**
+```java
+@Entity
+@Table(name = "tasks")
+public class Task {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false, length = 100)
+    private String title;
+    
+    @Column(length = 500)
+    private String description;
+    
+    // Stockage en base de données : on sauvegarde le label
+    @Column(nullable = false)
+    private String status;
+    
+    @Column(nullable = false)
+    private String priority;
+    
+    private LocalDateTime dueDate;
+    
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
+    
+    // Constructeurs
+    public Task() {
+        this.createdAt = LocalDateTime.now();
+        this.status = new Todo().getLabel();
+    }
+    
+    // Méthodes utilitaires pour convertir String <-> Sealed Class
+    public TaskStatus getStatusEnum() {
+        return switch (this.status) {
+            case "TODO" -> new Todo();
+            case "IN_PROGRESS" -> new InProgress();
+            case "DONE" -> new Done();
+            default -> new Todo();
+        };
+    }
+    
+    public void setStatusEnum(TaskStatus status) {
+        this.status = status.getLabel();
+    }
+    
+    public TaskPriority getPriorityEnum() {
+        return switch (this.priority) {
+            case "LOW" -> new Low();
+            case "MEDIUM" -> new Medium();
+            case "HIGH" -> new High();
+            case "URGENT" -> new Urgent();
+            default -> new Low();
+        };
+    }
+    
+    public void setPriorityEnum(TaskPriority priority) {
+        this.priority = priority.getLabel();
+    }
+    
+    // Getters et Setters classiques
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    // ... autres getters/setters
+    
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+```
+
+**Alternative plus simple avec Enum :**
+```java
+@Entity
+@Table(name = "tasks")
+public class Task {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false, length = 100)
+    private String title;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskStatus status;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskPriority priority;
+    
+    // ... reste du code
+}
+```
+
 **Points à réviser :**
-- Annotations JPA de base
-- Types de génération d'ID
-- Annotations temporelles (@CreatedDate, @LastModifiedDate)
+- Annotations JPA de base (@Entity, @Table, @Column)
+- Types de génération d'ID (@GeneratedValue)
+- Annotations temporelles (@PreUpdate, @PrePersist)
+- Sealed classes vs Enums : avantages et inconvénients
+- Pattern matching avec sealed classes
+- Persistance JPA : stockage de types personnalisés
+
+**Ressources à consulter :**
+- [JPA Entity Annotations - Baeldung](https://www.baeldung.com/jpa-entities)
+- [JPA @GeneratedValue Strategies](https://www.baeldung.com/jpa-strategies-when-id-null)
+- [JPA Lifecycle Callbacks (@PreUpdate, @PrePersist)](https://www.baeldung.com/jpa-entity-lifecycle-events)
+- [JPA @Enumerated Annotation](https://www.baeldung.com/jpa-persisting-enums-in-jpa)
+- [Mapping Custom Types in JPA](https://thorben-janssen.com/jpa-21-type-converter-better-way-to/)
+- [Hibernate Official Documentation](https://hibernate.org/orm/documentation/6.0/)
 
 ---
 
@@ -235,6 +564,13 @@ List<Task> findByUserId(Long userId);
 Optional<User> findByEmail(String email);
 ```
 
+**Ressources à consulter :**
+- [Spring Data JPA - Official Guide](https://spring.io/projects/spring-data-jpa)
+- [Query Methods - Spring Data JPA](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods)
+- [Derived Query Methods](https://www.baeldung.com/spring-data-derived-queries)
+- [JpaRepository Methods Explained](https://www.baeldung.com/spring-data-repositories)
+- [Custom Queries with @Query](https://www.baeldung.com/spring-data-jpa-query)
+
 #### Étape 2.2 : Service Layer
 - [ ] Créer `TaskService` avec les méthodes CRUD
 - [ ] Implémenter la logique métier
@@ -246,6 +582,13 @@ Optional<User> findByEmail(String email);
 - `getTaskById(Long id)`
 - `updateTask(Long id, TaskRequest request)`
 - `deleteTask(Long id)`
+
+**Ressources à consulter :**
+- [Spring Service Layer - Best Practices](https://www.baeldung.com/spring-service-layer-validation)
+- [Business Logic in Spring](https://www.baeldung.com/spring-boot-business-logic)
+- [Exception Handling in Spring](https://www.baeldung.com/exception-handling-for-rest-with-spring)
+- [Transaction Management with @Transactional](https://www.baeldung.com/transaction-configuration-with-jpa-and-spring)
+- [DTO Pattern Explained](https://www.baeldung.com/java-dto-pattern)
 
 #### Étape 2.3 : Controller Layer
 - [ ] Créer `TaskController` avec les endpoints REST
@@ -260,6 +603,14 @@ POST   /api/tasks           - Crée une nouvelle tâche
 PUT    /api/tasks/{id}      - Met à jour une tâche
 DELETE /api/tasks/{id}      - Supprime une tâche
 ```
+
+**Ressources à consulter :**
+- [Building REST APIs with Spring Boot](https://spring.io/guides/tutorials/rest/)
+- [Spring @RestController vs @Controller](https://www.baeldung.com/spring-controller-vs-restcontroller)
+- [REST API Design Best Practices](https://www.baeldung.com/rest-api-best-practices-design)
+- [HTTP Status Codes Explained](https://www.baeldung.com/spring-response-status)
+- [Request Mapping Annotations](https://www.baeldung.com/spring-requestmapping)
+- [ResponseEntity in Spring](https://www.baeldung.com/spring-response-entity)
 
 ---
 
@@ -346,6 +697,14 @@ public record TaskRequest(
 
 **Note :** Les Records sont parfaits pour les DTOs car ils sont immuables et génèrent automatiquement les getters, equals(), hashCode() et toString().
 
+**Ressources à consulter :**
+- [Bean Validation (JSR 303/380)](https://www.baeldung.com/javax-validation)
+- [Validation Annotations Reference](https://www.baeldung.com/javax-validation-method-constraints)
+- [Custom Validators in Spring](https://www.baeldung.com/spring-mvc-custom-validator)
+- [Java Records Tutorial](https://www.baeldung.com/java-record-keyword)
+- [Records with Bean Validation](https://www.baeldung.com/java-bean-validation-not-null-empty-blank)
+- [DTO to Entity Mapping - ModelMapper](https://www.baeldung.com/java-modelmapper)
+
 #### Étape 3.2 : Gestion globale des exceptions
 - [ ] Créer `GlobalExceptionHandler` avec @ControllerAdvice
 - [ ] Créer des exceptions personnalisées
@@ -356,6 +715,13 @@ public record TaskRequest(
 - `BadRequestException`
 - `UnauthorizedException`
 
+**Ressources à consulter :**
+- [@ControllerAdvice Guide](https://www.baeldung.com/exception-handling-for-rest-with-spring)
+- [Global Exception Handling](https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc)
+- [Custom Exceptions in Spring Boot](https://www.baeldung.com/spring-boot-custom-error-page)
+- [Problem Details for HTTP APIs (RFC 7807)](https://www.baeldung.com/problem-spring-web)
+- [ResponseEntityExceptionHandler](https://www.baeldung.com/exception-handling-for-rest-with-spring#responseentityexceptionhandler)
+
 ---
 
 ### **Phase 4 : Relations entre entités (Niveau intermédiaire)**
@@ -365,15 +731,32 @@ public record TaskRequest(
 - [ ] Ajouter la relation @OneToMany dans User
 - [ ] Configurer le cascade et le fetch type
 
+**Ressources à consulter :**
+- [JPA Relationships - Complete Guide](https://www.baeldung.com/jpa-relationships)
+- [@ManyToOne and @OneToMany](https://www.baeldung.com/hibernate-one-to-many)
+- [Cascade Types Explained](https://www.baeldung.com/jpa-cascade-types)
+- [FetchType LAZY vs EAGER](https://www.baeldung.com/hibernate-lazy-eager-loading)
+- [Bidirectional Relationships](https://www.baeldung.com/jpa-joincolumn-vs-mappedby)
+
 #### Étape 4.2 : Ajout de Project
 - [ ] Créer l'entité `Project`
 - [ ] Relation User - Project (@ManyToOne)
 - [ ] Relation Project - Task (@OneToMany)
 
+**Ressources à consulter :**
+- [Multiple @OneToMany Relationships](https://www.baeldung.com/jpa-one-to-many)
+- [Modeling Real-World Relationships](https://thorben-janssen.com/entity-mappings-introduction-jpa-fetchtypes/)
+
 #### Étape 4.3 : Ajout de Category
 - [ ] Créer l'entité `Category`
 - [ ] Relation Task - Category (@ManyToMany)
 - [ ] Créer la table de jointure
+
+**Ressources à consulter :**
+- [@ManyToMany Relationships](https://www.baeldung.com/jpa-many-to-many)
+- [Join Tables and @JoinTable](https://www.baeldung.com/jpa-join-types)
+- [ManyToMany Best Practices](https://thorben-janssen.com/best-practices-for-many-to-many-associations-with-hibernate-and-jpa/)
+- [N+1 Query Problem and Solutions](https://www.baeldung.com/hibernate-n-plus-one-problem)
 
 **Schéma des relations :**
 ```
@@ -398,6 +781,12 @@ Project (1) ----< (*) Task
 GET /api/tasks?page=0&size=10&sort=dueDate,desc
 ```
 
+**Ressources à consulter :**
+- [Pagination and Sorting with Spring Data JPA](https://www.baeldung.com/spring-data-jpa-pagination-sorting)
+- [Pageable and Page Explained](https://www.baeldung.com/spring-data-web-support)
+- [Custom Pagination Responses](https://www.baeldung.com/rest-api-pagination-in-spring)
+- [Sorting with Multiple Criteria](https://www.baeldung.com/spring-data-sorting)
+
 #### Étape 5.2 : Filtres et recherche
 - [ ] Créer des méthodes de recherche avancée
 - [ ] Filtrer par status, priorité, date
@@ -410,10 +799,82 @@ List<Task> findByStatusAndPriority(TaskStatus status, TaskPriority priority);
 List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
 ```
 
-#### Étape 5.3 : Statistiques
+**Ressources à consulter :**
+- [Query Methods Keywords](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repository-query-keywords)
+- [JPA Specifications](https://www.baeldung.com/rest-api-search-language-spring-data-specifications)
+- [Dynamic Queries with Criteria API](https://www.baeldung.com/hibernate-criteria-queries)
+- [Search and Filtering REST APIs](https://www.baeldung.com/rest-api-query-search-language-tutorial)
+- [QueryDSL with Spring Data JPA](https://www.baeldung.com/intro-to-querydsl)
+
+#### Étape 5.3 : Statistiques et pattern matching
 - [ ] Créer un endpoint pour les statistiques utilisateur
 - [ ] Compter les tâches par status
 - [ ] Calculer le taux de complétion
+- [ ] Utiliser le pattern matching avec les sealed classes
+
+**Exemple avec pattern matching (sealed classes) :**
+```java
+@Service
+public class TaskStatisticsService {
+    
+    public TaskStatistics getUserStatistics(Long userId) {
+        List<Task> tasks = taskRepository.findByUserId(userId);
+        
+        long todoCount = tasks.stream()
+            .map(Task::getStatusEnum)
+            .filter(status -> status instanceof Todo)
+            .count();
+        
+        long inProgressCount = tasks.stream()
+            .map(Task::getStatusEnum)
+            .filter(status -> status instanceof InProgress)
+            .count();
+        
+        long doneCount = tasks.stream()
+            .map(Task::getStatusEnum)
+            .filter(status -> status instanceof Done)
+            .count();
+        
+        // Pattern matching exhaustif
+        Map<String, Long> tasksByPriority = tasks.stream()
+            .collect(Collectors.groupingBy(task -> 
+                switch (task.getPriorityEnum()) {
+                    case Low l -> "Basse";
+                    case Medium m -> "Moyenne";
+                    case High h -> "Haute";
+                    case Urgent u -> "Urgente";
+                },
+                Collectors.counting()
+            ));
+        
+        double completionRate = tasks.isEmpty() ? 0 : 
+            (double) doneCount / tasks.size() * 100;
+        
+        return new TaskStatistics(
+            tasks.size(),
+            todoCount,
+            inProgressCount,
+            doneCount,
+            completionRate,
+            tasksByPriority
+        );
+    }
+}
+```
+
+**Avec enums classiques :**
+```java
+long doneCount = tasks.stream()
+    .filter(task -> task.getStatus() == TaskStatus.DONE)
+    .count();
+```
+
+**Ressources à consulter :**
+- [Java Streams API Guide](https://www.baeldung.com/java-8-streams)
+- [Collectors in Java](https://www.baeldung.com/java-8-collectors)
+- [Grouping and Aggregation](https://www.baeldung.com/java-groupingby-collector)
+- [Pattern Matching with instanceof](https://www.baeldung.com/java-pattern-matching-instanceof)
+- [Custom Aggregations in Spring Data](https://www.baeldung.com/spring-data-jpa-projections)
 
 ---
 
@@ -425,10 +886,26 @@ List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
 - [ ] Désactiver CSRF pour l'API REST
 - [ ] Configurer CORS
 
+**Ressources à consulter :**
+- [Spring Security Architecture](https://spring.io/guides/topicals/spring-security-architecture/)
+- [Spring Security with Spring Boot 3](https://www.baeldung.com/spring-boot-security-autoconfiguration)
+- [SecurityFilterChain Configuration](https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter)
+- [CORS Configuration](https://www.baeldung.com/spring-cors)
+- [CSRF Protection Explained](https://www.baeldung.com/spring-security-csrf)
+- [Method Security with @PreAuthorize](https://www.baeldung.com/spring-security-method-security)
+
 #### Étape 6.2 : Implémentation JWT
 - [ ] Créer `JwtTokenProvider` pour générer/valider les tokens
 - [ ] Créer `JwtAuthenticationFilter`
 - [ ] Implémenter `UserDetailsService`
+
+**Ressources à consulter :**
+- [JWT Introduction and Overview](https://jwt.io/introduction)
+- [Spring Security with JWT](https://www.baeldung.com/spring-security-oauth-jwt)
+- [JWT Authentication in Spring Boot](https://www.bezkoder.com/spring-boot-jwt-authentication/)
+- [OncePerRequestFilter Explained](https://www.baeldung.com/spring-onceperrequestfilter)
+- [UserDetailsService Custom Implementation](https://www.baeldung.com/spring-security-authentication-with-a-database)
+- [JWT Best Practices](https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/)
 
 #### Étape 6.3 : Endpoints d'authentification
 - [ ] Créer `AuthController`
@@ -447,10 +924,23 @@ List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
 }
 ```
 
+**Ressources à consulter :**
+- [Password Encoding with BCrypt](https://www.baeldung.com/spring-security-registration-password-encoding-bcrypt)
+- [Login and Registration REST API](https://www.baeldung.com/registration-with-spring-mvc-and-spring-security)
+- [PasswordEncoder Interface](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/crypto/password/PasswordEncoder.html)
+- [Authentication REST API Best Practices](https://www.baeldung.com/rest-api-authentication)
+
 #### Étape 6.4 : Sécurisation des endpoints
 - [ ] Protéger tous les endpoints `/api/tasks/**`
 - [ ] Vérifier que l'utilisateur ne peut voir que ses propres tâches
 - [ ] Implémenter les rôles (USER, ADMIN)
+
+**Ressources à consulter :**
+- [Role-Based Access Control (RBAC)](https://www.baeldung.com/role-and-privilege-for-spring-security-registration)
+- [Method-Level Security](https://www.baeldung.com/spring-security-method-security)
+- [@PreAuthorize and @PostAuthorize](https://www.baeldung.com/spring-security-expressions)
+- [Securing REST APIs](https://www.baeldung.com/securing-a-restful-web-service-with-spring-security)
+- [Testing Secured Endpoints](https://www.baeldung.com/spring-security-integration-tests)
 
 ---
 
@@ -460,6 +950,14 @@ List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
 - [ ] Tester les services avec Mockito
 - [ ] Tester les repositories
 - [ ] Atteindre une couverture de code >70%
+
+**Ressources à consulter :**
+- [Unit Testing with JUnit 5](https://www.baeldung.com/junit-5)
+- [Mockito Tutorial](https://www.baeldung.com/mockito-series)
+- [Testing Spring Boot Applications](https://www.baeldung.com/spring-boot-testing)
+- [@Mock, @InjectMocks, @Spy Explained](https://www.baeldung.com/mockito-annotations)
+- [JaCoCo Code Coverage](https://www.baeldung.com/jacoco)
+- [AssertJ for Better Assertions](https://www.baeldung.com/introduction-to-assertj)
 
 #### Étape 7.2 : Tests d'intégration
 - [ ] Tester les controllers avec MockMvc
@@ -480,6 +978,15 @@ void shouldCreateTask() throws Exception {
             .andExpect(jsonPath("$.title").value("Test Task"));
 }
 ```
+
+**Ressources à consulter :**
+- [Integration Testing with @SpringBootTest](https://www.baeldung.com/spring-boot-testing)
+- [MockMvc for REST Controllers](https://www.baeldung.com/integration-testing-in-spring)
+- [Testing REST APIs with RestAssured](https://www.baeldung.com/rest-assured-tutorial)
+- [H2 In-Memory Database for Tests](https://www.baeldung.com/spring-boot-h2-database)
+- [Testcontainers for Database Testing](https://www.baeldung.com/spring-boot-testcontainers-integration-test)
+- [@DataJpaTest for Repository Tests](https://www.baeldung.com/spring-boot-testing#unit-testing-with-datajpatest)
+- [Testing Security with @WithMockUser](https://www.baeldung.com/spring-security-integration-tests)
 
 ---
 
@@ -537,14 +1044,53 @@ projects: List<Project>
 id: Long (PK)
 title: String (not null)
 description: String
-status: TaskStatus (enum: TODO, IN_PROGRESS, DONE)
-priority: TaskPriority (enum: LOW, MEDIUM, HIGH, URGENT)
+status: String (stockage du label, converti vers TaskStatus sealed class) - not null
+priority: String (stockage du label, converti vers TaskPriority sealed class) - not null
 dueDate: LocalDateTime
 createdAt: LocalDateTime
 updatedAt: LocalDateTime
 user: User (FK)
 project: Project (FK)
 categories: Set<Category>
+```
+
+### Types du domaine (Sealed Classes)
+
+**TaskStatus (sealed interface)**
+```java
+sealed interface TaskStatus permits Todo, InProgress, Done
+
+Implémentations :
+- Todo : "À faire"
+- InProgress : "En cours"
+- Done : "Terminée"
+```
+
+**TaskPriority (sealed interface)**
+```java
+sealed interface TaskPriority permits Low, Medium, High, Urgent
+
+Implémentations :
+- Low (niveau 1) : Priorité basse
+- Medium (niveau 2) : Priorité moyenne
+- High (niveau 3) : Priorité haute
+- Urgent (niveau 4) : Urgent
+```
+
+**Role (sealed interface ou enum)**
+```java
+sealed interface Role permits UserRole, AdminRole
+
+Implémentations :
+- UserRole : Utilisateur standard
+- AdminRole : Administrateur
+```
+
+**Note :** Vous pouvez aussi utiliser des enums classiques si vous préférez la simplicité :
+```java
+enum TaskStatus { TODO, IN_PROGRESS, DONE }
+enum TaskPriority { LOW, MEDIUM, HIGH, URGENT }
+enum Role { USER, ADMIN }
 ```
 
 ### Entité Project
@@ -658,11 +1204,41 @@ mvn clean test jacoco:report
 
 ## 📖 Ressources utiles
 
+### Documentation officielle
 - [Documentation Spring Boot](https://spring.io/projects/spring-boot)
 - [Documentation Spring Data JPA](https://spring.io/projects/spring-data-jpa)
 - [Documentation Spring Security](https://spring.io/projects/spring-security)
-- [Guide JWT avec Spring](https://jwt.io/introduction)
-- [Hibernate ORM](https://hibernate.org/orm/documentation/)
+- [Hibernate ORM Documentation](https://hibernate.org/orm/documentation/6.0/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+
+### Guides et tutoriels
+- [Spring Guides](https://spring.io/guides) - Guides officiels par Spring
+- [Baeldung Spring Tutorials](https://www.baeldung.com/spring-tutorial) - Tutoriels complets
+- [Java 21 Features](https://openjdk.org/projects/jdk/21/) - Nouvelles fonctionnalités Java 21
+
+### Outils et librairies
+- [JWT.io](https://jwt.io/) - Décodeur et informations sur JWT
+- [Postman](https://www.postman.com/) - Test d'API REST
+- [Swagger/OpenAPI](https://swagger.io/) - Documentation d'API
+- [DBeaver](https://dbeaver.io/) - Client de base de données universel
+
+### Chaînes YouTube recommandées
+- [Spring Developer](https://www.youtube.com/@SpringSourceDev)
+- [Amigoscode](https://www.youtube.com/@amigoscode)
+- [Dan Vega](https://www.youtube.com/@DanVega)
+- [Java Brains](https://www.youtube.com/@Java.Brains)
+
+### Blogs techniques
+- [Baeldung](https://www.baeldung.com/) - Tutoriels Java et Spring
+- [Vlad Mihalcea](https://vladmihalcea.com/) - Expert Hibernate/JPA
+- [Thorben Janssen](https://thorben-janssen.com/) - Expert JPA/Hibernate
+- [Spring Blog](https://spring.io/blog) - Blog officiel Spring
+
+### Livres recommandés
+- "Spring in Action" par Craig Walls
+- "Java Persistence with Hibernate" par Christian Bauer
+- "Spring Security in Action" par Laurentiu Spilca
+- "Effective Java" par Joshua Bloch
 
 ---
 
@@ -737,7 +1313,33 @@ Utilisez les Records Java pour vos DTOs car ils sont :
 - Thread-safe
 - Performants
 
-
+```java
+// Response DTO avec Record
+public record TaskResponse(
+    Long id,
+    String title,
+    String description,
+    TaskStatus status,
+    TaskPriority priority,
+    LocalDateTime dueDate,
+    LocalDateTime createdAt,
+    String username
+) {
+    // Méthode statique pour mapper depuis l'entité
+    public static TaskResponse from(Task task) {
+        return new TaskResponse(
+            task.getId(),
+            task.getTitle(),
+            task.getDescription(),
+            task.getStatus(),
+            task.getPriority(),
+            task.getDueDate(),
+            task.getCreatedAt(),
+            task.getUser().getUsername()
+        );
+    }
+}
+```
 
 ---
 
@@ -751,3 +1353,6 @@ Utilisez les Records Java pour vos DTOs car ils sont :
 
 Ce projet est à but éducatif.
 
+---
+
+**Bon courage pour votre révision ! 💪**
