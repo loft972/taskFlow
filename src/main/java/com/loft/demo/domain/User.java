@@ -6,18 +6,23 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@Entity(name = "customer_user")
+@Entity(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false , length = 25, unique = true)
     private String username;
+    @Column(nullable = false, length = 25, unique = true)
     private String email;
+    @Column(nullable = false)
     private String password;
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
     @CreationTimestamp
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     public User() {}

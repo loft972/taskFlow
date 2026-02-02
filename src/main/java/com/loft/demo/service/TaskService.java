@@ -38,6 +38,6 @@ public class TaskService {
     }
 
     public Task findByTitle(String title){
-        return taskRepository.findTaskByTitle(title).orElse(null);
+        return taskRepository.findByTitle(title).orElse(null);
     }
 }
