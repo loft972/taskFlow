@@ -47,55 +47,22 @@ Java 21 est une version LTS (Long Term Support) qui apporte de nombreuses foncti
 - **String Templates** (Preview) : Interpolation de chaînes
 - **Sequenced Collections** : Nouvelles interfaces pour les collections ordonnées
 
-**Exemple d'utilisation dans le projet :**
+**Fonctionnalités à utiliser dans le projet :**
 
 **1. Sealed Classes pour le domain modeling**
-```java
-// Alternative moderne aux enums
-public sealed interface TaskStatus permits Todo, InProgress, Done {
-    String getLabel();
-}
-
-public record Todo() implements TaskStatus {
-    @Override
-    public String getLabel() { return "TODO"; }
-}
-
-public record InProgress() implements TaskStatus {
-    @Override
-    public String getLabel() { return "IN_PROGRESS"; }
-}
-
-public record Done() implements TaskStatus {
-    @Override
-    public String getLabel() { return "DONE"; }
-}
-```
+- Alternative moderne aux enums
+- Pattern matching exhaustif vérifié à la compilation
+- Plus flexible pour modéliser des domaines métiers complexes
 
 **2. Records pour les DTOs**
-```java
-// Record pour les DTOs (alternative aux classes classiques)
-public record TaskRequest(
-    @NotBlank String title,
-    String description,
-    @NotNull TaskPriority priority
-) {}
-```
+- Syntaxe concise pour les objets de transfert de données
+- Immutabilité automatique
+- Génération automatique des méthodes equals(), hashCode(), toString()
 
-**3. Pattern matching for switch avec sealed classes**
-```java
-public String getTaskStatusMessage(TaskStatus status) {
-    return switch (status) {
-        case Todo t -> "Tâche à faire";
-        case InProgress ip -> "En cours de réalisation";
-        case Done d -> "Tâche terminée ✓";
-    };
-}
-
-// Le compilateur garantit l'exhaustivité !
-// Si vous ajoutez un nouveau type à TaskStatus, le code ne compilera pas
-// tant que vous n'aurez pas géré ce cas dans le switch
-```
+**3. Pattern matching for switch**
+- Switch expressions avec vérification d'exhaustivité
+- Le compilateur garantit que tous les cas sont gérés
+- Parfait avec les sealed classes
 
 **Avantages des Sealed Classes sur les Enums :**
 - Chaque variante peut avoir ses propres propriétés et méthodes
@@ -189,83 +156,20 @@ src/main/java/com/taskflow/
 - [ ] Configurer la connexion à PostgreSQL
 - [ ] Ajouter les dépendances Maven nécessaires
 
+**Dépendances requises :**
+- Spring Boot Starter Web
+- Spring Boot Starter Data JPA
+- Spring Boot Starter Validation
+- PostgreSQL Driver
+- Spring Boot Starter Security
+- JWT (io.jsonwebtoken)
+- Spring Boot Starter Test
+
 **Ressources à consulter :**
 - [Spring Boot Application Properties](https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html)
 - [Configuration PostgreSQL avec Spring Boot](https://www.baeldung.com/spring-boot-postgresql-docker)
 - [Maven Dependencies Management](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html)
 - [Spring Boot Starters Guide](https://www.baeldung.com/spring-boot-starters)
-
-**Dépendances à ajouter dans `pom.xml` :**
-```xml
-<!-- Parent Spring Boot 3.5.10 -->
-<parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.10</version>
-    <relativePath/>
-</parent>
-
-<properties>
-    <java.version>21</java.version>
-</properties>
-
-<!-- Spring Boot Starter Web -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-
-<!-- Spring Boot Starter Data JPA -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-
-<!-- Spring Boot Starter Validation -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-validation</artifactId>
-</dependency>
-
-<!-- PostgreSQL Driver -->
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
-</dependency>
-
-<!-- Spring Boot Starter Security -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-security</artifactId>
-</dependency>
-
-<!-- JWT -->
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-api</artifactId>
-    <version>0.11.5</version>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-impl</artifactId>
-    <version>0.11.5</version>
-    <scope>runtime</scope>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-jackson</artifactId>
-    <version>0.11.5</version>
-    <scope>runtime</scope>
-</dependency>
-
-<!-- Spring Boot Starter Test -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <scope>test</scope>
-</dependency>
-```
 
 #### Étape 1.2 : Création des types avec Sealed Classes (Java 21)
 - [ ] Créer la sealed class `Role` avec les implémentations : UserRole, AdminRole
@@ -278,122 +182,10 @@ src/main/java/com/taskflow/
 - Meilleure expressivité du domaine métier
 - Possibilité d'ajouter des comportements spécifiques
 
-**Option 1 : Sealed Class simple (type algébrique)**
-```java
-public sealed interface TaskStatus permits Todo, InProgress, Done {
-    String getLabel();
-    String getColor();
-}
-
-public record Todo() implements TaskStatus {
-    @Override
-    public String getLabel() {
-        return "À faire";
-    }
-    
-    @Override
-    public String getColor() {
-        return "#808080";
-    }
-}
-
-public record InProgress() implements TaskStatus {
-    @Override
-    public String getLabel() {
-        return "En cours";
-    }
-    
-    @Override
-    public String getColor() {
-        return "#FFA500";
-    }
-}
-
-public record Done() implements TaskStatus {
-    @Override
-    public String getLabel() {
-        return "Terminée";
-    }
-    
-    @Override
-    public String getColor() {
-        return "#008000";
-    }
-}
-```
-
-**Option 2 : Sealed Class avec données (plus avancé)**
-```java
-public sealed interface TaskPriority permits Low, Medium, High, Urgent {
-    int getLevel();
-    String getLabel();
-    
-    // Pattern matching helper
-    default String getDescription() {
-        return switch (this) {
-            case Low l -> "Priorité basse";
-            case Medium m -> "Priorité moyenne";
-            case High h -> "Priorité haute";
-            case Urgent u -> "Urgent";
-        };
-    }
-}
-
-public record Low() implements TaskPriority {
-    @Override
-    public int getLevel() { return 1; }
-    
-    @Override
-    public String getLabel() { return "LOW"; }
-}
-
-public record Medium() implements TaskPriority {
-    @Override
-    public int getLevel() { return 2; }
-    
-    @Override
-    public String getLabel() { return "MEDIUM"; }
-}
-
-public record High() implements TaskPriority {
-    @Override
-    public int getLevel() { return 3; }
-    
-    @Override
-    public String getLabel() { return "HIGH"; }
-}
-
-public record Urgent() implements TaskPriority {
-    @Override
-    public int getLevel() { return 4; }
-    
-    @Override
-    public String getLabel() { return "URGENT"; }
-}
-```
-
-**Option 3 : Enum classique (plus simple pour débuter)**
-Si vous préférez commencer par quelque chose de plus simple, vous pouvez toujours utiliser les enums traditionnels :
-
-```java
-public enum TaskStatus {
-    TODO,
-    IN_PROGRESS,
-    DONE
-}
-
-public enum TaskPriority {
-    LOW,
-    MEDIUM,
-    HIGH,
-    URGENT
-}
-
-public enum Role {
-    USER,
-    ADMIN
-}
-```
+**Options d'implémentation :**
+1. **Sealed Class simple** : Interface scellée avec records simples
+2. **Sealed Class avec données** : Records avec propriétés et méthodes métier
+3. **Enum classique** : Solution plus simple pour débuter
 
 **Recommandation :** Commencez avec les enums pour la simplicité, puis refactorez vers les sealed classes une fois à l'aise avec les concepts de base.
 
@@ -409,133 +201,30 @@ public enum Role {
 - [ ] Créer l'entité `Task` avec les champs : id, title, description, status, priority, dueDate, createdAt, updatedAt
 - [ ] Ajouter les annotations JPA appropriées (@Entity, @Id, @GeneratedValue, etc.)
 
-**Exemple d'entité Task avec Sealed Classes :**
-```java
-@Entity
-@Table(name = "tasks")
-public class Task {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, length = 100)
-    private String title;
-    
-    @Column(length = 500)
-    private String description;
-    
-    // Stockage en base de données : on sauvegarde le label
-    @Column(nullable = false)
-    private String status;
-    
-    @Column(nullable = false)
-    private String priority;
-    
-    private LocalDateTime dueDate;
-    
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    private LocalDateTime updatedAt;
-    
-    // Constructeurs
-    public Task() {
-        this.createdAt = LocalDateTime.now();
-        this.status = new Todo().getLabel();
-    }
-    
-    // Méthodes utilitaires pour convertir String <-> Sealed Class
-    public TaskStatus getStatusEnum() {
-        return switch (this.status) {
-            case "TODO" -> new Todo();
-            case "IN_PROGRESS" -> new InProgress();
-            case "DONE" -> new Done();
-            default -> new Todo();
-        };
-    }
-    
-    public void setStatusEnum(TaskStatus status) {
-        this.status = status.getLabel();
-    }
-    
-    public TaskPriority getPriorityEnum() {
-        return switch (this.priority) {
-            case "LOW" -> new Low();
-            case "MEDIUM" -> new Medium();
-            case "HIGH" -> new High();
-            case "URGENT" -> new Urgent();
-            default -> new Low();
-        };
-    }
-    
-    public void setPriorityEnum(TaskPriority priority) {
-        this.priority = priority.getLabel();
-    }
-    
-    // Getters et Setters classiques
-    public Long getId() {
-        return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public String getStatus() {
-        return status;
-    }
-    
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    
-    // ... autres getters/setters
-    
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-}
-```
+**Annotations JPA essentielles à utiliser :**
+- @Entity
+- @Table
+- @Id
+- @GeneratedValue
+- @Column
+- @Enumerated (si vous utilisez des enums)
+- @CreationTimestamp (pour createdAt)
+- @UpdateTimestamp (pour updatedAt)
 
-**Alternative plus simple avec Enum :**
-```java
-@Entity
-@Table(name = "tasks")
-public class Task {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, length = 100)
-    private String title;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskStatus status;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskPriority priority;
-    
-    // ... reste du code
-}
-```
+**Alternatives pour les timestamps :**
+- **Option 1 (Recommandée)** : `@CreationTimestamp` et `@UpdateTimestamp` (annotations Hibernate)
+- **Option 2** : `@PrePersist` et `@PreUpdate` (callbacks JPA)
+- **Option 3** : Spring Data JPA Auditing avec `@CreatedDate` et `@LastModifiedDate`
+
+**Options pour stocker les sealed classes en base :**
+- Stockage du label sous forme de String
+- Utilisation de convertisseurs JPA personnalisés
+- Utilisation d'enums avec @Enumerated
 
 **Points à réviser :**
 - Annotations JPA de base (@Entity, @Table, @Column)
 - Types de génération d'ID (@GeneratedValue)
-- Annotations temporelles (@PreUpdate, @PrePersist)
+- Gestion des timestamps (Hibernate vs JPA vs Spring Data)
 - Sealed classes vs Enums : avantages et inconvénients
 - Pattern matching avec sealed classes
 - Persistance JPA : stockage de types personnalisés
@@ -543,10 +232,141 @@ public class Task {
 **Ressources à consulter :**
 - [JPA Entity Annotations - Baeldung](https://www.baeldung.com/jpa-entities)
 - [JPA @GeneratedValue Strategies](https://www.baeldung.com/jpa-strategies-when-id-null)
+- [Hibernate @CreationTimestamp and @UpdateTimestamp](https://www.baeldung.com/hibernate-creationtimestamp-updatetimestamp)
 - [JPA Lifecycle Callbacks (@PreUpdate, @PrePersist)](https://www.baeldung.com/jpa-entity-lifecycle-events)
+- [Spring Data JPA Auditing](https://www.baeldung.com/database-auditing-jpa)
 - [JPA @Enumerated Annotation](https://www.baeldung.com/jpa-persisting-enums-in-jpa)
 - [Mapping Custom Types in JPA](https://thorben-janssen.com/jpa-21-type-converter-better-way-to/)
 - [Hibernate Official Documentation](https://hibernate.org/orm/documentation/6.0/)
+
+---
+
+### 📘 Annexe Phase 1 : Gestion des Timestamps - @CreationTimestamp vs @PrePersist
+
+#### Comprendre les différences
+
+Il existe plusieurs approches pour gérer automatiquement les dates de création et de mise à jour dans vos entités JPA. Voici les principales options :
+
+**Option 1 : @CreationTimestamp et @UpdateTimestamp (Hibernate)**
+
+- Annotations spécifiques à **Hibernate** (pas JPA standard)
+- Gestion **automatique** des timestamps par Hibernate
+- **Zéro code** : Hibernate gère tout automatiquement
+- **Simple et déclaratif** : Une seule annotation suffit
+- **Recommandé** pour des cas simples de timestamps
+
+**Avantages :**
+- Très simple à utiliser
+- Aucun risque d'oubli
+- Pas de logique métier dans l'entité
+- Code minimal
+
+**Inconvénients :**
+- Dépendance à Hibernate (ne marche pas avec d'autres implémentations JPA)
+- Moins de contrôle sur la logique
+
+---
+
+**Option 2 : @PrePersist et @PreUpdate (JPA standard)**
+
+- Annotations **JPA standard** (partie de la spécification JPA)
+- **Callbacks** de lifecycle : méthodes appelées automatiquement avant insert/update
+- **Flexibilité totale** : Vous pouvez ajouter n'importe quelle logique
+- **Portable** : Fonctionne avec toutes les implémentations JPA
+
+**Avantages :**
+- JPA standard (portable entre Hibernate, EclipseLink, etc.)
+- Contrôle total sur la logique
+- Possibilité d'ajouter de la validation ou des calculs
+- Flexibilité pour des besoins complexes
+
+**Inconvénients :**
+- Plus verbeux (nécessite d'écrire des méthodes)
+- Code boilerplate
+- Risque d'erreur si mal implémenté
+
+---
+
+**Option 3 : Spring Data JPA Auditing**
+
+- Utilisation de `@CreatedDate` et `@LastModifiedDate`
+- Nécessite l'activation de l'auditing avec `@EnableJpaAuditing`
+- Peut aussi tracker l'utilisateur qui a créé/modifié (`@CreatedBy`, `@LastModifiedBy`)
+
+---
+
+#### Tableau comparatif
+
+| Critère | @CreationTimestamp / @UpdateTimestamp | @PrePersist / @PreUpdate | Spring Data Auditing |
+|---------|--------------------------------------|--------------------------|---------------------|
+| **Standard** | Hibernate uniquement | JPA standard | Spring Data |
+| **Complexité** | Très simple | Plus verbeux | Moyenne |
+| **Flexibilité** | Limitée aux timestamps | Totale | Timestamps + audit utilisateur |
+| **Portabilité** | Hibernate seulement | Tous les fournisseurs JPA | Spring uniquement |
+| **Configuration** | Aucune | Aucune | Requires @EnableJpaAuditing |
+
+---
+
+#### Quand utiliser quoi ?
+
+**Utilisez @CreationTimestamp / @UpdateTimestamp si :**
+- Vous utilisez Hibernate (cas de Spring Boot par défaut)
+- Vous voulez juste gérer des timestamps simples
+- Vous préférez la simplicité et le code minimal
+- **→ C'EST LE CAS POUR TASKFLOW**
+
+**Utilisez @PrePersist / @PreUpdate si :**
+- Vous devez être indépendant de Hibernate
+- Vous avez besoin de logique métier avant la sauvegarde (ex: générer un slug, calculer une valeur, valider des règles)
+- Vous voulez faire plus que juste des timestamps
+
+**Utilisez Spring Data Auditing si :**
+- Vous voulez tracker qui a créé/modifié les entités
+- Vous avez besoin d'un système d'audit complet
+- Vous utilisez Spring Data JPA
+
+---
+
+#### Exemples de cas d'usage pour @PrePersist/@PreUpdate
+
+Voici des situations où les callbacks JPA sont plus appropriés :
+
+**Cas 1 : Génération automatique de slug**
+```
+Avant sauvegarde : générer un slug URL-friendly depuis le titre
+Exemple : "Ma Tâche Importante" → "ma-tache-importante"
+```
+
+**Cas 2 : Validation métier**
+```
+Vérifier des règles métier avant l'insertion
+Exemple : S'assurer qu'une tâche urgente a toujours une date d'échéance
+```
+
+**Cas 3 : Calculs automatiques**
+```
+Calculer des valeurs dérivées
+Exemple : Calculer le nombre de jours restants avant l'échéance
+```
+
+**Cas 4 : Initialisation de valeurs par défaut**
+```
+Définir des valeurs par défaut complexes
+Exemple : Assigner automatiquement un projet par défaut si aucun n'est spécifié
+```
+
+---
+
+#### Recommandation pour TaskFlow
+
+Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTimestamp** car :
+
+1. ✅ Vous utilisez Spring Boot avec Hibernate
+2. ✅ Vous avez juste besoin de timestamps simples
+3. ✅ C'est plus propre et nécessite moins de code
+4. ✅ Vous n'avez pas besoin de portabilité JPA pour ce TP
+
+**Gardez en tête** que si plus tard vous avez besoin de logique métier plus complexe (comme les cas d'usage mentionnés ci-dessus), vous pourrez toujours migrer vers @PrePersist/@PreUpdate ou les combiner avec les annotations Hibernate.
 
 ---
 
@@ -557,12 +377,10 @@ public class Task {
 - [ ] Créer `UserRepository` extends `JpaRepository<User, Long>`
 - [ ] Ajouter des méthodes de recherche personnalisées
 
-**Exemple de méthodes à implémenter :**
-```java
-List<Task> findByStatus(TaskStatus status);
-List<Task> findByUserId(Long userId);
-Optional<User> findByEmail(String email);
-```
+**Méthodes de recherche à implémenter :**
+- Recherche par status
+- Recherche par userId
+- Recherche par email (pour User)
 
 **Ressources à consulter :**
 - [Spring Data JPA - Official Guide](https://spring.io/projects/spring-data-jpa)
@@ -621,79 +439,16 @@ DELETE /api/tasks/{id}      - Supprime une tâche
 - [ ] Créer `TaskResponse` pour les réponses
 - [ ] Mapper les entités vers les DTOs (avec classes classiques ou Records Java 21)
 
-**Option 1 : Classe classique (sans Lombok)**
-```java
-public class TaskRequest {
-    @NotBlank(message = "Le titre est obligatoire")
-    @Size(min = 3, max = 100, message = "Le titre doit contenir entre 3 et 100 caractères")
-    private String title;
-    
-    @Size(max = 500, message = "La description ne peut pas dépasser 500 caractères")
-    private String description;
-    
-    @NotNull(message = "La priorité est obligatoire")
-    private TaskPriority priority;
-    
-    // Constructeurs
-    public TaskRequest() {}
-    
-    public TaskRequest(String title, String description, TaskPriority priority) {
-        this.title = title;
-        this.description = description;
-        this.priority = priority;
-    }
-    
-    // Getters
-    public String getTitle() {
-        return title;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public TaskPriority getPriority() {
-        return priority;
-    }
-    
-    // Setters
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
-}
-```
+**Options d'implémentation :**
+1. **Classe classique** : Avec getters/setters manuels (sans Lombok)
+2. **Record Java 21** : Recommandé pour les DTOs immuables
 
-**Option 2 : Record Java 21 (recommandé pour les DTOs immuables)**
-```java
-public record TaskRequest(
-    @NotBlank(message = "Le titre est obligatoire")
-    @Size(min = 3, max = 100)
-    String title,
-    
-    @Size(max = 500)
-    String description,
-    
-    @NotNull(message = "La priorité est obligatoire")
-    TaskPriority priority,
-    
-    LocalDateTime dueDate
-) {
-    // Constructeur compact pour validation supplémentaire si nécessaire
-    public TaskRequest {
-        if (title != null) {
-            title = title.trim();
-        }
-    }
-}
-```
+**Annotations de validation à utiliser :**
+- @NotBlank
+- @NotNull
+- @Size
+- @Email
+- @Pattern
 
 **Note :** Les Records sont parfaits pour les DTOs car ils sont immuables et génèrent automatiquement les getters, equals(), hashCode() et toString().
 
@@ -792,12 +547,10 @@ GET /api/tasks?page=0&size=10&sort=dueDate,desc
 - [ ] Filtrer par status, priorité, date
 - [ ] Recherche textuelle (title, description)
 
-**Exemple :**
-```java
-List<Task> findByTitleContainingIgnoreCase(String keyword);
-List<Task> findByStatusAndPriority(TaskStatus status, TaskPriority priority);
-List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
-```
+**Types de méthodes à implémenter :**
+- Recherche par mots-clés (ignorer la casse)
+- Filtres combinés (status + priorité)
+- Recherche par plage de dates
 
 **Ressources à consulter :**
 - [Query Methods Keywords](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repository-query-keywords)
@@ -812,62 +565,16 @@ List<Task> findByDueDateBetween(LocalDateTime start, LocalDateTime end);
 - [ ] Calculer le taux de complétion
 - [ ] Utiliser le pattern matching avec les sealed classes
 
-**Exemple avec pattern matching (sealed classes) :**
-```java
-@Service
-public class TaskStatisticsService {
-    
-    public TaskStatistics getUserStatistics(Long userId) {
-        List<Task> tasks = taskRepository.findByUserId(userId);
-        
-        long todoCount = tasks.stream()
-            .map(Task::getStatusEnum)
-            .filter(status -> status instanceof Todo)
-            .count();
-        
-        long inProgressCount = tasks.stream()
-            .map(Task::getStatusEnum)
-            .filter(status -> status instanceof InProgress)
-            .count();
-        
-        long doneCount = tasks.stream()
-            .map(Task::getStatusEnum)
-            .filter(status -> status instanceof Done)
-            .count();
-        
-        // Pattern matching exhaustif
-        Map<String, Long> tasksByPriority = tasks.stream()
-            .collect(Collectors.groupingBy(task -> 
-                switch (task.getPriorityEnum()) {
-                    case Low l -> "Basse";
-                    case Medium m -> "Moyenne";
-                    case High h -> "Haute";
-                    case Urgent u -> "Urgente";
-                },
-                Collectors.counting()
-            ));
-        
-        double completionRate = tasks.isEmpty() ? 0 : 
-            (double) doneCount / tasks.size() * 100;
-        
-        return new TaskStatistics(
-            tasks.size(),
-            todoCount,
-            inProgressCount,
-            doneCount,
-            completionRate,
-            tasksByPriority
-        );
-    }
-}
-```
+**Statistiques à calculer :**
+- Nombre total de tâches
+- Nombre de tâches par status (Todo, InProgress, Done)
+- Nombre de tâches par priorité
+- Taux de complétion en pourcentage
 
-**Avec enums classiques :**
-```java
-long doneCount = tasks.stream()
-    .filter(task -> task.getStatus() == TaskStatus.DONE)
-    .count();
-```
+**Approches possibles :**
+- Utilisation de Java Streams API
+- Pattern matching avec sealed classes
+- Agrégation avec Spring Data JPA
 
 **Ressources à consulter :**
 - [Java Streams API Guide](https://www.baeldung.com/java-8-streams)
@@ -913,16 +620,18 @@ long doneCount = tasks.stream()
 - [ ] Implémenter `/api/auth/login`
 - [ ] Encoder les mots de passe avec BCrypt
 
-**Structure du token JWT :**
-```json
-{
-  "sub": "user@email.com",
-  "userId": 1,
-  "role": "USER",
-  "iat": 1234567890,
-  "exp": 1234654290
-}
-```
+**Fonctionnalités à implémenter :**
+- Enregistrement d'un nouvel utilisateur
+- Connexion avec génération de token JWT
+- Validation des credentials
+- Encodage sécurisé des mots de passe
+
+**Structure recommandée du token JWT :**
+- Subject (email de l'utilisateur)
+- User ID
+- Role
+- Date de création (iat)
+- Date d'expiration (exp)
 
 **Ressources à consulter :**
 - [Password Encoding with BCrypt](https://www.baeldung.com/spring-security-registration-password-encoding-bcrypt)
@@ -964,20 +673,11 @@ long doneCount = tasks.stream()
 - [ ] Tester les endpoints avec @SpringBootTest
 - [ ] Utiliser une base H2 en mémoire pour les tests
 
-**Exemple de test :**
-```java
-@Test
-void shouldCreateTask() throws Exception {
-    TaskRequest request = new TaskRequest();
-    request.setTitle("Test Task");
-    
-    mockMvc.perform(post("/api/tasks")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.title").value("Test Task"));
-}
-```
+**Types de tests à implémenter :**
+- Tests des endpoints REST avec MockMvc
+- Tests d'intégration complets avec @SpringBootTest
+- Tests de la sécurité et de l'authentification
+- Tests des repositories avec @DataJpaTest
 
 **Ressources à consulter :**
 - [Integration Testing with @SpringBootTest](https://www.baeldung.com/spring-boot-testing)
@@ -992,36 +692,21 @@ void shouldCreateTask() throws Exception {
 
 ## 🔧 Configuration
 
-### application.yml (exemple)
+### Fichier de configuration requis
 
-```yaml
-spring:
-  application:
-    name: taskflow
-  
-  datasource:
-    url: jdbc:postgresql://localhost:5432/taskflow
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-  
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  
-  security:
-    jwt:
-      secret-key: votreClefSecreteTresLongueEtSecurisee
-      expiration: 86400000 # 24 heures en millisecondes
+Vous devez créer un fichier `application.yml` (ou `application.properties`) contenant :
 
-server:
-  port: 8080
-```
+**Configuration requise :**
+- Nom de l'application
+- Configuration de la base de données (URL, username, password, driver)
+- Configuration JPA/Hibernate (ddl-auto, show-sql, dialect)
+- Configuration JWT (secret-key, expiration)
+- Port du serveur
+
+**Points importants :**
+- La clé secrète JWT doit être suffisamment longue et sécurisée
+- L'expiration du token est généralement de 24 heures (86400000 ms)
+- Le mode `ddl-auto` peut être `update` en développement, `validate` en production
 
 ---
 
@@ -1057,41 +742,30 @@ categories: Set<Category>
 ### Types du domaine (Sealed Classes)
 
 **TaskStatus (sealed interface)**
-```java
-sealed interface TaskStatus permits Todo, InProgress, Done
 
 Implémentations :
 - Todo : "À faire"
 - InProgress : "En cours"
 - Done : "Terminée"
-```
 
 **TaskPriority (sealed interface)**
-```java
-sealed interface TaskPriority permits Low, Medium, High, Urgent
 
 Implémentations :
 - Low (niveau 1) : Priorité basse
 - Medium (niveau 2) : Priorité moyenne
 - High (niveau 3) : Priorité haute
 - Urgent (niveau 4) : Urgent
-```
 
 **Role (sealed interface ou enum)**
-```java
-sealed interface Role permits UserRole, AdminRole
 
 Implémentations :
 - UserRole : Utilisateur standard
 - AdminRole : Administrateur
-```
 
 **Note :** Vous pouvez aussi utiliser des enums classiques si vous préférez la simplicité :
-```java
-enum TaskStatus { TODO, IN_PROGRESS, DONE }
-enum TaskPriority { LOW, MEDIUM, HIGH, URGENT }
-enum Role { USER, ADMIN }
-```
+- TaskStatus : TODO, IN_PROGRESS, DONE
+- TaskPriority : LOW, MEDIUM, HIGH, URGENT
+- Role : USER, ADMIN
 
 ### Entité Project
 ```
@@ -1167,12 +841,10 @@ cd taskFlow
 ```
 
 2. **Créer la base de données**
-```sql
-CREATE DATABASE taskflow;
-```
+Créer une base de données PostgreSQL nommée `taskflow`
 
 3. **Configurer `application.yml`**
-   Modifier les informations de connexion à la base de données
+Modifier les informations de connexion à la base de données
 
 4. **Compiler le projet**
 ```bash
@@ -1275,30 +947,9 @@ Une fois ce backend terminé, vous pourrez créer une application Angular qui co
 
 Java 21 introduit les Virtual Threads qui permettent d'améliorer considérablement les performances pour les applications I/O-bound comme les APIs REST.
 
-**Activation dans Spring Boot 3.5.10 :**
-
-```yaml
-# application.yml
-spring:
-  threads:
-    virtual:
-      enabled: true
-```
-
-Ou par configuration :
-
-```java
-@Configuration
-public class VirtualThreadConfig {
-    
-    @Bean
-    public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
-        return protocolHandler -> {
-            protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        };
-    }
-}
-```
+**Méthodes d'activation :**
+1. Via la configuration YAML dans `application.yml`
+2. Via une classe de configuration Java avec un Bean personnalisé
 
 **Avantages :**
 - Meilleure scalabilité
@@ -1313,33 +964,10 @@ Utilisez les Records Java pour vos DTOs car ils sont :
 - Thread-safe
 - Performants
 
-```java
-// Response DTO avec Record
-public record TaskResponse(
-    Long id,
-    String title,
-    String description,
-    TaskStatus status,
-    TaskPriority priority,
-    LocalDateTime dueDate,
-    LocalDateTime createdAt,
-    String username
-) {
-    // Méthode statique pour mapper depuis l'entité
-    public static TaskResponse from(Task task) {
-        return new TaskResponse(
-            task.getId(),
-            task.getTitle(),
-            task.getDescription(),
-            task.getStatus(),
-            task.getPriority(),
-            task.getDueDate(),
-            task.getCreatedAt(),
-            task.getUser().getUsername()
-        );
-    }
-}
-```
+**Pattern recommandé :**
+- Créer une méthode statique `from()` pour mapper depuis l'entité
+- Utiliser le constructeur compact pour la validation
+- Profiter de l'immutabilité automatique
 
 ---
 
@@ -1352,7 +980,3 @@ public record TaskResponse(
 ## 📄 Licence
 
 Ce projet est à but éducatif.
-
----
-
-**Bon courage pour votre révision ! 💪**

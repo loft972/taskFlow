@@ -1,15 +1,12 @@
 package com.loft.demo.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@Entity
+@Entity(name = "customer_user")
 public class User {
 
     @Id
@@ -18,13 +15,14 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String role;
+    @Enumerated(EnumType.ORDINAL)
+    private Role role;
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     public User() {}
 
-    public User(String username, String email, String password, String role) {
+    public User(String username, String email, String password, Role role) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -63,11 +61,11 @@ public class User {
         this.password = password;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 

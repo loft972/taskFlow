@@ -1,9 +1,6 @@
 package com.loft.demo.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -19,8 +16,10 @@ public class Task {
     private Long id;
     private String title;
     private String description;
-    private String status;
-    private String priority;
+    @Enumerated(EnumType.ORDINAL)
+    private TaskStatus status;
+    @Enumerated(EnumType.ORDINAL)
+    private TaskPriority priority;
     private LocalDate dueDate;
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -29,7 +28,7 @@ public class Task {
 
     public Task() {}
 
-    public Task(String title, String description, String status, String priority, LocalDate dueDate) {
+    public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate dueDate) {
         this.title = title;
         this.description = description;
         this.status = status;
@@ -61,19 +60,19 @@ public class Task {
         this.description = description;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
-    public String getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(String priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 
