@@ -1,6 +1,7 @@
 package com.loft.demo.service;
 
 import com.loft.demo.domain.Task;
+import com.loft.demo.exception.ResourceNotFoundException;
 import com.loft.demo.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,24 +21,26 @@ public class TaskService {
     }
 
     public Task updateTask(Long id, String title){
-        var tasktoUpdate = taskRepository.findById(id);
-        tasktoUpdate.get().setTitle(title);
-        return taskRepository.save(tasktoUpdate.get());
+        var taskUpdate = taskRepository.findById(id);
+        if(taskUpdate.isPresent()){
+            taskUpdate.get().setTitle(title);
+            return taskRepository.save(taskUpdate.get());
+        } else {
+            throw new ResourceNotFoundException("Task not FOund");
+        }
+
     }
 
     public void deleteTask(Long id){
          taskRepository.deleteById(id);
     }
 
-    public Task findTask(Task task){
-        return taskRepository.findById(task.getId()).orElse(null);
+    public Task getTaskById(Task task){
+        return taskRepository.findById(task.getId()).orElseThrow(ResourceNotFoundException::new);
     }
 
-    public List<Task> findAll(){
+    public List<Task> getAllTask(){
         return taskRepository.findAll();
     }
 
-    public Task findByTitle(String title){
-        return taskRepository.findByTitle(title).orElse(null);
-    }
 }

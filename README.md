@@ -152,9 +152,9 @@ src/main/java/com/taskflow/
 ### **Phase 1 : Setup et configuration (Niveau débutant)**
 
 #### Étape 1.1 : Configuration initiale
-- [ ] Configurer `application.properties` ou `application.yml`
-- [ ] Configurer la connexion à PostgreSQL
-- [ ] Ajouter les dépendances Maven nécessaires
+- [x] Configurer `application.properties` ou `application.yml`
+- [x] Configurer la connexion à PostgreSQL
+- [x] Ajouter les dépendances Maven nécessaires
 
 **Dépendances requises :**
 - Spring Boot Starter Web
@@ -172,9 +172,9 @@ src/main/java/com/taskflow/
 - [Spring Boot Starters Guide](https://www.baeldung.com/spring-boot-starters)
 
 #### Étape 1.2 : Création des types avec Sealed Classes (Java 21)
-- [ ] Créer la sealed class `Role` avec les implémentations : UserRole, AdminRole
-- [ ] Créer la sealed class `TaskStatus` avec les implémentations : Todo, InProgress, Done
-- [ ] Créer la sealed class `TaskPriority` avec les implémentations : Low, Medium, High, Urgent
+- [x] Créer la sealed class `Role` avec les implémentations : UserRole, AdminRole
+- [x] Créer la sealed class `TaskStatus` avec les implémentations : Todo, InProgress, Done
+- [x] Créer la sealed class `TaskPriority` avec les implémentations : Low, Medium, High, Urgent
 
 **Pourquoi les Sealed Classes plutôt que les Enums ?**
 - Plus de flexibilité : chaque variante peut avoir ses propres propriétés et méthodes
@@ -197,9 +197,9 @@ src/main/java/com/taskflow/
 - [Records vs Classes - When to Use What](https://www.baeldung.com/java-record-vs-final-class)
 
 #### Étape 1.3 : Création des entités de base
-- [ ] Créer l'entité `User` avec les champs : id, username, email, password, role, createdAt
-- [ ] Créer l'entité `Task` avec les champs : id, title, description, status, priority, dueDate, createdAt, updatedAt
-- [ ] Ajouter les annotations JPA appropriées (@Entity, @Id, @GeneratedValue, etc.)
+- [x] Créer l'entité `User` avec les champs : id, username, email, password, role, createdAt
+- [x] Créer l'entité `Task` avec les champs : id, title, description, status, priority, dueDate, createdAt, updatedAt
+- [x] Ajouter les annotations JPA appropriées (@Entity, @Id, @GeneratedValue, etc.)
 
 **Annotations JPA essentielles à utiliser :**
 - @Entity
@@ -372,15 +372,18 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 
 ### **Phase 2 : CRUD de base (Niveau débutant)**
 
+**Note importante :** Dans cette phase, nous travaillons avec les entités `User` et `Task` de manière **indépendante**. La relation entre elles (User possède des Tasks) sera ajoutée en **Phase 4**. Pour l'instant, concentrez-vous sur les opérations CRUD de base sans lien entre les entités.
+
 #### Étape 2.1 : Repository Layer
 - [ ] Créer `TaskRepository` extends `JpaRepository<Task, Long>`
 - [ ] Créer `UserRepository` extends `JpaRepository<User, Long>`
 - [ ] Ajouter des méthodes de recherche personnalisées
 
 **Méthodes de recherche à implémenter :**
-- Recherche par status
-- Recherche par userId
-- Recherche par email (pour User)
+- Recherche par status : `findByStatus(TaskStatus status)`
+- Recherche par email (pour User) : `findByEmail(String email)`
+
+**Note importante :** La méthode `findByUserId()` sera ajoutée en **Phase 4** lorsque vous aurez créé la relation entre User et Task. Pour l'instant, concentrez-vous sur les recherches simples ci-dessus.
 
 **Ressources à consulter :**
 - [Spring Data JPA - Official Guide](https://spring.io/projects/spring-data-jpa)
@@ -392,21 +395,33 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 #### Étape 2.2 : Service Layer
 - [ ] Créer `TaskService` avec les méthodes CRUD
 - [ ] Implémenter la logique métier
-- [ ] Gérer les exceptions (ResourceNotFoundException)
+- [ ] Créer et lancer des exceptions personnalisées
 
 **Méthodes à implémenter :**
-- `createTask(TaskRequest request)`
-- `getAllTasks()`
-- `getTaskById(Long id)`
-- `updateTask(Long id, TaskRequest request)`
-- `deleteTask(Long id)`
+- `createTask(Task task)` - Créer une tâche
+- `getAllTasks()` - Récupérer toutes les tâches
+- `getTaskById(Long id)` - Récupérer une tâche par ID
+- `updateTask(Long id, Task task)` - Mettre à jour une tâche
+- `deleteTask(Long id)` - Supprimer une tâche
+
+**Points importants :**
+- Utilisez `@Service` pour annoter votre classe de service
+- Injectez le repository avec injection par constructeur (recommandé)
+- Pour `updateTask` et `getTaskById`, vérifiez d'abord si la tâche existe
+- Si la tâche n'existe pas, lancez une exception `ResourceNotFoundException`
+
+**Gestion des exceptions dans les services :**
+À ce stade, votre rôle est de **créer et lancer** des exceptions personnalisées.
 
 **Ressources à consulter :**
+- [Exception Handling in Java - Oracle Tutorial](https://docs.oracle.com/javase/tutorial/essential/exceptions/)
+- [Custom Exceptions in Java](https://www.baeldung.com/java-new-custom-exception)
+- [Checked vs Unchecked Exceptions](https://www.baeldung.com/java-checked-unchecked-exceptions)
+- [Optional.orElseThrow() Method](https://www.baeldung.com/java-optional-throw-exception)
+- [Best Practices for Exception Handling](https://www.baeldung.com/java-exceptions)
 - [Spring Service Layer - Best Practices](https://www.baeldung.com/spring-service-layer-validation)
 - [Business Logic in Spring](https://www.baeldung.com/spring-boot-business-logic)
-- [Exception Handling in Spring](https://www.baeldung.com/exception-handling-for-rest-with-spring)
 - [Transaction Management with @Transactional](https://www.baeldung.com/transaction-configuration-with-jpa-and-spring)
-- [DTO Pattern Explained](https://www.baeldung.com/java-dto-pattern)
 
 #### Étape 2.3 : Controller Layer
 - [ ] Créer `TaskController` avec les endpoints REST
@@ -422,6 +437,22 @@ PUT    /api/tasks/{id}      - Met à jour une tâche
 DELETE /api/tasks/{id}      - Supprime une tâche
 ```
 
+**Annotations importantes :**
+- `@RestController` : Indique que c'est un contrôleur REST
+- `@RequestMapping("/api/tasks")` : Préfixe commun pour tous les endpoints
+- `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` : Mappings HTTP
+- `@PathVariable` : Récupérer les variables de l'URL (ex: `{id}`)
+- `@RequestBody` : Récupérer le corps de la requête (pour POST et PUT)
+- `@ResponseStatus` : Définir le code HTTP de la réponse
+
+**Codes HTTP à utiliser :**
+- 200 OK : GET, PUT, DELETE réussis
+- 201 Created : POST réussi
+- 404 Not Found : Ressource non trouvée
+- 400 Bad Request : Requête invalide
+
+**Note :** Pour l'instant, vous recevez et retournez directement l'entité `Task` dans vos endpoints. L'utilisation de DTOs viendra en **Phase 3**.
+
 **Ressources à consulter :**
 - [Building REST APIs with Spring Boot](https://spring.io/guides/tutorials/rest/)
 - [Spring @RestController vs @Controller](https://www.baeldung.com/spring-controller-vs-restcontroller)
@@ -434,21 +465,49 @@ DELETE /api/tasks/{id}      - Supprime une tâche
 
 ### **Phase 3 : Validation et gestion d'erreurs (Niveau intermédiaire)**
 
+**Transition importante :** Dans la Phase 2, vous avez travaillé directement avec les entités (`Task`, `User`) dans vos controllers et services. Maintenant, vous allez apprendre à utiliser des **DTOs (Data Transfer Objects)** pour séparer la couche de présentation de la couche de persistance. Les DTOs permettent de :
+- Contrôler exactement quelles données sont exposées via l'API
+- Ajouter de la validation sans polluer les entités
+- Éviter d'exposer des informations sensibles (comme les mots de passe)
+- Faciliter l'évolution de l'API indépendamment du modèle de données
+
 #### Étape 3.1 : DTOs (Data Transfer Objects)
 - [ ] Créer `TaskRequest` avec validation
 - [ ] Créer `TaskResponse` pour les réponses
 - [ ] Mapper les entités vers les DTOs (avec classes classiques ou Records Java 21)
+
+**Composition de TaskRequest (données reçues du client) :**
+- `title` (String) - Obligatoire, entre 3 et 100 caractères
+- `description` (String) - Optionnel, max 500 caractères
+- `status` (TaskStatus) - Optionnel (par défaut TODO)
+- `priority` (TaskPriority) - Obligatoire
+- `dueDate` (LocalDate) - Optionnel
+
+**Composition de TaskResponse (données envoyées au client) :**
+- `id` (Long)
+- `title` (String)
+- `description` (String)
+- `status` (TaskStatus)
+- `priority` (TaskPriority)
+- `dueDate` (LocalDate)
+- `createdAt` (LocalDateTime)
+- `updatedAt` (LocalDateTime)
 
 **Options d'implémentation :**
 1. **Classe classique** : Avec getters/setters manuels (sans Lombok)
 2. **Record Java 21** : Recommandé pour les DTOs immuables
 
 **Annotations de validation à utiliser :**
-- @NotBlank
-- @NotNull
-- @Size
-- @Email
-- @Pattern
+- @NotBlank : Le champ ne doit pas être null ou vide
+- @NotNull : Le champ ne doit pas être null
+- @Size : Définir une taille min/max
+- @Email : Valider un format email
+- @Pattern : Valider avec une expression régulière
+
+**Mapping Entity ↔ DTO :**
+Créez des méthodes pour convertir :
+- `Task` → `TaskResponse` (méthode `toResponse()` ou `TaskResponse.from(task)`)
+- `TaskRequest` → `Task` (méthode `toEntity()` ou constructeur)
 
 **Note :** Les Records sont parfaits pour les DTOs car ils sont immuables et génèrent automatiquement les getters, equals(), hashCode() et toString().
 
@@ -461,14 +520,32 @@ DELETE /api/tasks/{id}      - Supprime une tâche
 - [DTO to Entity Mapping - ModelMapper](https://www.baeldung.com/java-modelmapper)
 
 #### Étape 3.2 : Gestion globale des exceptions
+- [ ] Créer les exceptions personnalisées (si pas encore fait en Phase 2)
 - [ ] Créer `GlobalExceptionHandler` avec @ControllerAdvice
-- [ ] Créer des exceptions personnalisées
 - [ ] Retourner des réponses d'erreur structurées
 
-**Exceptions à créer :**
-- `ResourceNotFoundException`
-- `BadRequestException`
-- `UnauthorizedException`
+**Distinction importante :**
+- **Phase 2.2** : Vous avez **créé et lancé** des exceptions dans vos services
+- **Phase 3.2** : Maintenant vous allez **intercepter et gérer** ces exceptions globalement
+
+**Exceptions à créer (si pas encore fait) :**
+- `ResourceNotFoundException` (extends RuntimeException)
+- `BadRequestException` (extends RuntimeException)
+- `UnauthorizedException` (extends RuntimeException)
+
+**GlobalExceptionHandler :**
+Cette classe va intercepter toutes les exceptions lancées par vos controllers/services et retourner des réponses HTTP appropriées avec des messages clairs.
+
+**Exemple de structure de réponse d'erreur :**
+```
+{
+  "timestamp": "2026-02-03T10:15:30",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Task not found with id: 123",
+  "path": "/api/tasks/123"
+}
+```
 
 **Ressources à consulter :**
 - [@ControllerAdvice Guide](https://www.baeldung.com/exception-handling-for-rest-with-spring)
@@ -476,6 +553,7 @@ DELETE /api/tasks/{id}      - Supprime une tâche
 - [Custom Exceptions in Spring Boot](https://www.baeldung.com/spring-boot-custom-error-page)
 - [Problem Details for HTTP APIs (RFC 7807)](https://www.baeldung.com/problem-spring-web)
 - [ResponseEntityExceptionHandler](https://www.baeldung.com/exception-handling-for-rest-with-spring#responseentityexceptionhandler)
+- [Exception Handling Best Practices](https://www.toptal.com/java/spring-boot-rest-api-error-handling)
 
 ---
 
@@ -841,10 +919,10 @@ cd taskFlow
 ```
 
 2. **Créer la base de données**
-Créer une base de données PostgreSQL nommée `taskflow`
+   Créer une base de données PostgreSQL nommée `taskflow`
 
 3. **Configurer `application.yml`**
-Modifier les informations de connexion à la base de données
+   Modifier les informations de connexion à la base de données
 
 4. **Compiler le projet**
 ```bash
@@ -973,10 +1051,14 @@ Utilisez les Records Java pour vos DTOs car ils sont :
 
 ## 👨‍💻 Auteur
 
-**Loïc Christophe** - Révision Backend Java & Spring Boot
+**Votre Nom** - Révision Backend Java & Spring Boot
 
 ---
 
 ## 📄 Licence
 
 Ce projet est à but éducatif.
+
+---
+
+**Bon courage pour votre révision ! 💪**

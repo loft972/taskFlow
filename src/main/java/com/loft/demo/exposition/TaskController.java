@@ -30,7 +30,7 @@ public class TaskController {
     @GetMapping("/tasks")
     public ResponseEntity<List<Task>> listerToutesLesTasks(){
         LOGGER.info("GEt REQUEST");
-        return new ResponseEntity<>(taskService.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(taskService.getAllTask(), HttpStatus.OK);
     }
 
     @PutMapping("/tasks/{id}")
