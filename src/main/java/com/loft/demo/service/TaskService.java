@@ -35,8 +35,8 @@ public class TaskService {
          taskRepository.deleteById(id);
     }
 
-    public Task getTaskById(Task task){
-        return taskRepository.findById(task.getId()).orElseThrow(ResourceNotFoundException::new);
+    public Task getTaskById(Long id){
+        return taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task doesn't exist"));
     }
 
     public List<Task> getAllTask(){

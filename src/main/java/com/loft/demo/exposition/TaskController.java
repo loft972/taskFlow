@@ -33,6 +33,12 @@ public class TaskController {
         return new ResponseEntity<>(taskService.getAllTask(), HttpStatus.OK);
     }
 
+    @GetMapping("/tasks/{id}")
+    public ResponseEntity<Task> recupererUneTask(@PathVariable Long id){
+        LOGGER.info("GEt REQUEST");
+        return new ResponseEntity<>(taskService.getTaskById(id), HttpStatus.OK);
+    }
+
     @PutMapping("/tasks/{id}")
     public ResponseEntity<Task> miseAJourTask(@PathVariable Long id, @RequestParam String newTitle){
         LOGGER.info("PUT REQUEST - id : {}, newTitle : {}", id, newTitle);
