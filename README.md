@@ -72,79 +72,6 @@ Java 21 est une version LTS (Long Term Support) qui apporte de nombreuses foncti
 
 ---
 
-## 📁 Structure du projet
-
-```
-src/main/java/com/taskflow/
-│
-├── config/                  # Configurations
-│   ├── SecurityConfig.java
-│   ├── CorsConfig.java
-│   └── JwtConfig.java
-│
-├── controller/              # Endpoints REST
-│   ├── AuthController.java
-│   ├── TaskController.java
-│   ├── ProjectController.java
-│   └── UserController.java
-│
-├── dto/                     # Data Transfer Objects
-│   ├── request/
-│   │   ├── LoginRequest.java
-│   │   ├── RegisterRequest.java
-│   │   ├── TaskRequest.java
-│   │   └── ProjectRequest.java
-│   └── response/
-│       ├── AuthResponse.java
-│       ├── TaskResponse.java
-│       └── ProjectResponse.java
-│
-├── entity/                  # Entités JPA
-│   ├── User.java
-│   ├── Task.java
-│   ├── Project.java
-│   ├── Category.java
-│   ├── role/
-│   │   ├── Role.java (sealed interface)
-│   │   ├── UserRole.java (record)
-│   │   └── AdminRole.java (record)
-│   ├── status/
-│   │   ├── TaskStatus.java (sealed interface)
-│   │   ├── Todo.java (record)
-│   │   ├── InProgress.java (record)
-│   │   └── Done.java (record)
-│   └── priority/
-│       ├── TaskPriority.java (sealed interface)
-│       ├── Low.java (record)
-│       ├── Medium.java (record)
-│       ├── High.java (record)
-│       └── Urgent.java (record)
-│
-├── repository/              # Repositories Spring Data
-│   ├── UserRepository.java
-│   ├── TaskRepository.java
-│   ├── ProjectRepository.java
-│   └── CategoryRepository.java
-│
-├── service/                 # Logique métier
-│   ├── AuthService.java
-│   ├── TaskService.java
-│   ├── ProjectService.java
-│   ├── UserService.java
-│   └── JwtService.java
-│
-├── exception/               # Gestion des exceptions
-│   ├── GlobalExceptionHandler.java
-│   ├── ResourceNotFoundException.java
-│   ├── BadRequestException.java
-│   └── UnauthorizedException.java
-│
-└── security/                # Sécurité
-    ├── JwtAuthenticationFilter.java
-    ├── UserDetailsServiceImpl.java
-    └── JwtTokenProvider.java
-```
-
 ---
 
 ## 📚 Progression du TP
@@ -176,6 +103,27 @@ src/main/java/com/taskflow/
 - [x] Créer la sealed class `TaskStatus` avec les implémentations : Todo, InProgress, Done
 - [x] Créer la sealed class `TaskPriority` avec les implémentations : Low, Medium, High, Urgent
 
+**📂 Emplacement des fichiers :**
+
+Pour les **enums classiques** (option simple) :
+- `src/main/java/com/loft/demo/domain/Role.java`
+- `src/main/java/com/loft/demo/domain/TaskStatus.java`
+- `src/main/java/com/loft/demo/domain/TaskPriority.java`
+
+Pour les **sealed classes** (option avancée) :
+- `src/main/java/com/loft/demo/domain/role/Role.java` (sealed interface)
+- `src/main/java/com/loft/demo/domain/role/UserRole.java` (record)
+- `src/main/java/com/loft/demo/domain/role/AdminRole.java` (record)
+- `src/main/java/com/loft/demo/domain/status/TaskStatus.java` (sealed interface)
+- `src/main/java/com/loft/demo/domain/status/Todo.java` (record)
+- `src/main/java/com/loft/demo/domain/status/InProgress.java` (record)
+- `src/main/java/com/loft/demo/domain/status/Done.java` (record)
+- `src/main/java/com/loft/demo/domain/priority/TaskPriority.java` (sealed interface)
+- `src/main/java/com/loft/demo/domain/priority/Low.java` (record)
+- `src/main/java/com/loft/demo/domain/priority/Medium.java` (record)
+- `src/main/java/com/loft/demo/domain/priority/High.java` (record)
+- `src/main/java/com/loft/demo/domain/priority/Urgent.java` (record)
+
 **Pourquoi les Sealed Classes plutôt que les Enums ?**
 - Plus de flexibilité : chaque variante peut avoir ses propres propriétés et méthodes
 - Pattern matching exhaustif garanti par le compilateur
@@ -200,6 +148,10 @@ src/main/java/com/taskflow/
 - [x] Créer l'entité `User` avec les champs : id, username, email, password, role, createdAt
 - [x] Créer l'entité `Task` avec les champs : id, title, description, status, priority, dueDate, createdAt, updatedAt
 - [x] Ajouter les annotations JPA appropriées (@Entity, @Id, @GeneratedValue, etc.)
+
+**📂 Emplacement des fichiers :**
+- `src/main/java/com/loft/demo/domain/User.java`
+- `src/main/java/com/loft/demo/domain/Task.java`
 
 **Annotations JPA essentielles à utiliser :**
 - @Entity
@@ -379,6 +331,11 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 - [ ] Créer `UserRepository` extends `JpaRepository<User, Long>`
 - [ ] Ajouter des méthodes de recherche personnalisées
 
+**📂 Emplacement des fichiers :**
+Créez un nouveau package `repository` :
+- `src/main/java/com/loft/demo/repository/TaskRepository.java`
+- `src/main/java/com/loft/demo/repository/UserRepository.java`
+
 **Méthodes de recherche à implémenter :**
 - Recherche par status : `findByStatus(TaskStatus status)`
 - Recherche par email (pour User) : `findByEmail(String email)`
@@ -397,6 +354,15 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 - [ ] Implémenter la logique métier
 - [ ] Créer et lancer des exceptions personnalisées
 
+**📂 Emplacement des fichiers :**
+Créez deux nouveaux packages :
+
+**Package `service` :**
+- `src/main/java/com/loft/demo/service/TaskService.java`
+
+**Package `exception` (pour les exceptions personnalisées) :**
+- `src/main/java/com/loft/demo/exception/ResourceNotFoundException.java`
+
 **Méthodes à implémenter :**
 - `createTask(Task task)` - Créer une tâche
 - `getAllTasks()` - Récupérer toutes les tâches
@@ -411,7 +377,15 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 - Si la tâche n'existe pas, lancez une exception `ResourceNotFoundException`
 
 **Gestion des exceptions dans les services :**
-À ce stade, votre rôle est de **créer et lancer** des exceptions personnalisées.
+À ce stade, votre rôle est de **créer et lancer** des exceptions personnalisées. Par exemple :
+```
+public Task getTaskById(Long id) {
+    return taskRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+}
+```
+
+La **gestion globale** de ces exceptions (avec `@ControllerAdvice`) sera faite en **Phase 3.2**.
 
 **Ressources à consulter :**
 - [Exception Handling in Java - Oracle Tutorial](https://docs.oracle.com/javase/tutorial/essential/exceptions/)
@@ -419,14 +393,23 @@ Pour votre projet **TaskFlow**, utilisez **@CreationTimestamp** et **@UpdateTime
 - [Checked vs Unchecked Exceptions](https://www.baeldung.com/java-checked-unchecked-exceptions)
 - [Optional.orElseThrow() Method](https://www.baeldung.com/java-optional-throw-exception)
 - [Best Practices for Exception Handling](https://www.baeldung.com/java-exceptions)
+
+**Ressources à consulter :**
 - [Spring Service Layer - Best Practices](https://www.baeldung.com/spring-service-layer-validation)
 - [Business Logic in Spring](https://www.baeldung.com/spring-boot-business-logic)
 - [Transaction Management with @Transactional](https://www.baeldung.com/transaction-configuration-with-jpa-and-spring)
+- [DTO Pattern Explained](https://www.baeldung.com/java-dto-pattern)
+
+**Note sur les exceptions :** Dans les services, vous **lancez** des exceptions. La **gestion globale** (interception et formatage des réponses) se fera en Phase 3.2 avec `@ControllerAdvice`.
 
 #### Étape 2.3 : Controller Layer
 - [ ] Créer `TaskController` avec les endpoints REST
 - [ ] Implémenter les méthodes HTTP (GET, POST, PUT, DELETE)
 - [ ] Utiliser les bonnes annotations (@RestController, @RequestMapping, @GetMapping, etc.)
+
+**📂 Emplacement des fichiers :**
+Créez un nouveau package `controller` :
+- `src/main/java/com/loft/demo/controller/TaskController.java`
 
 **Endpoints à créer :**
 ```
@@ -476,6 +459,11 @@ DELETE /api/tasks/{id}      - Supprime une tâche
 - [ ] Créer `TaskResponse` pour les réponses
 - [ ] Mapper les entités vers les DTOs (avec classes classiques ou Records Java 21)
 
+**📂 Emplacement des fichiers :**
+Créez un nouveau package `dto` avec deux sous-packages :
+- `src/main/java/com/loft/demo/dto/request/TaskRequest.java`
+- `src/main/java/com/loft/demo/dto/response/TaskResponse.java`
+
 **Composition de TaskRequest (données reçues du client) :**
 - `title` (String) - Obligatoire, entre 3 et 100 caractères
 - `description` (String) - Optionnel, max 500 caractères
@@ -523,6 +511,16 @@ Créez des méthodes pour convertir :
 - [ ] Créer les exceptions personnalisées (si pas encore fait en Phase 2)
 - [ ] Créer `GlobalExceptionHandler` avec @ControllerAdvice
 - [ ] Retourner des réponses d'erreur structurées
+
+**📂 Emplacement des fichiers :**
+Dans le package `exception` (créé en Phase 2.2) :
+- `src/main/java/com/loft/demo/exception/GlobalExceptionHandler.java`
+- `src/main/java/com/loft/demo/exception/ResourceNotFoundException.java` (si pas encore créé)
+- `src/main/java/com/loft/demo/exception/BadRequestException.java`
+- `src/main/java/com/loft/demo/exception/UnauthorizedException.java`
+
+Optionnel : Créez aussi une classe pour structurer les réponses d'erreur :
+- `src/main/java/com/loft/demo/exception/ErrorResponse.java`
 
 **Distinction importante :**
 - **Phase 2.2** : Vous avez **créé et lancé** des exceptions dans vos services
@@ -919,10 +917,10 @@ cd taskFlow
 ```
 
 2. **Créer la base de données**
-   Créer une base de données PostgreSQL nommée `taskflow`
+Créer une base de données PostgreSQL nommée `taskflow`
 
 3. **Configurer `application.yml`**
-   Modifier les informations de connexion à la base de données
+Modifier les informations de connexion à la base de données
 
 4. **Compiler le projet**
 ```bash
@@ -948,6 +946,105 @@ mvn test
 ### Lancer les tests avec rapport de couverture
 ```bash
 mvn clean test jacoco:report
+```
+
+---
+
+## 📁 Structure complète du projet
+
+Voici la structure finale de votre projet une fois toutes les phases terminées. Utilisez cette référence pour vous organiser au fur et à mesure de votre progression.
+
+**Note :** Votre package de base est `com.loft.demo` (adaptez selon votre configuration).
+
+```
+src/main/java/com/loft/demo/
+│
+├── domain/                  # Entités et types du domaine (Phase 1)
+│   ├── User.java
+│   ├── Task.java
+│   ├── Project.java (Phase 4)
+│   ├── Category.java (Phase 4)
+│   ├── Role.java (enum)
+│   ├── TaskStatus.java (enum)
+│   └── TaskPriority.java (enum)
+│
+├── repository/              # Repositories Spring Data (Phase 2)
+│   ├── UserRepository.java
+│   ├── TaskRepository.java
+│   ├── ProjectRepository.java (Phase 4)
+│   └── CategoryRepository.java (Phase 4)
+│
+├── service/                 # Logique métier (Phase 2)
+│   ├── TaskService.java
+│   ├── UserService.java (Phase 3+)
+│   ├── ProjectService.java (Phase 4)
+│   ├── AuthService.java (Phase 6)
+│   └── JwtService.java (Phase 6)
+│
+├── controller/              # Endpoints REST (Phase 2)
+│   ├── TaskController.java
+│   ├── UserController.java (Phase 3+)
+│   ├── ProjectController.java (Phase 4)
+│   └── AuthController.java (Phase 6)
+│
+├── dto/                     # Data Transfer Objects (Phase 3)
+│   ├── request/
+│   │   ├── TaskRequest.java
+│   │   ├── LoginRequest.java (Phase 6)
+│   │   ├── RegisterRequest.java (Phase 6)
+│   │   └── ProjectRequest.java (Phase 4)
+│   └── response/
+│       ├── TaskResponse.java
+│       ├── AuthResponse.java (Phase 6)
+│       ├── ProjectResponse.java (Phase 4)
+│       └── TaskStatistics.java (Phase 5)
+│
+├── exception/               # Gestion des exceptions (Phase 2 & 3)
+│   ├── GlobalExceptionHandler.java (Phase 3)
+│   ├── ResourceNotFoundException.java (Phase 2)
+│   ├── BadRequestException.java (Phase 3)
+│   ├── UnauthorizedException.java (Phase 3)
+│   └── ErrorResponse.java (Phase 3, optionnel)
+│
+├── config/                  # Configurations (Phase 6)
+│   ├── SecurityConfig.java
+│   ├── CorsConfig.java
+│   └── JwtConfig.java (optionnel)
+│
+└── security/                # Sécurité JWT (Phase 6)
+    ├── JwtAuthenticationFilter.java
+    ├── UserDetailsServiceImpl.java
+    └── JwtTokenProvider.java
+```
+
+**Structure des resources :**
+```
+src/main/resources/
+├── application.yml          # Configuration principale (Phase 1)
+└── application-test.yml     # Configuration pour les tests (Phase 7, optionnel)
+```
+
+**Variante avec sealed classes :**
+Si vous optez pour les sealed classes au lieu des enums, la structure du package `domain` sera :
+```
+domain/
+├── User.java
+├── Task.java
+├── role/
+│   ├── Role.java (sealed interface)
+│   ├── UserRole.java (record)
+│   └── AdminRole.java (record)
+├── status/
+│   ├── TaskStatus.java (sealed interface)
+│   ├── Todo.java (record)
+│   ├── InProgress.java (record)
+│   └── Done.java (record)
+└── priority/
+    ├── TaskPriority.java (sealed interface)
+    ├── Low.java (record)
+    ├── Medium.java (record)
+    ├── High.java (record)
+    └── Urgent.java (record)
 ```
 
 ---

@@ -1,5 +1,6 @@
 package com.loft.demo.domain;
 
+import com.loft.demo.exposition.dto.TaskResponse;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -14,15 +15,14 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, length = 25)
+    @Column(nullable = false, length = 100)
     private String title;
-    @Column(nullable = false, length = 25)
+    @Column(nullable = false, length = 100)
     private String description;
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
     @Enumerated(EnumType.STRING)
     private TaskPriority priority;
-    @Column(nullable = false)
     private LocalDate dueDate;
     @CreationTimestamp
     private LocalDateTime createdAt;

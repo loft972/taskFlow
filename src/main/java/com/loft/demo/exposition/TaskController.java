@@ -1,7 +1,10 @@
 package com.loft.demo.exposition;
 
 import com.loft.demo.domain.Task;
+import com.loft.demo.exposition.dto.TaskRequest;
+import com.loft.demo.exposition.dto.TaskResponse;
 import com.loft.demo.service.TaskService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,33 +25,34 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public ResponseEntity<Task> nouvelleTask(@RequestBody Task task){
+    public ResponseEntity<TaskResponse> nouvelleTask(@RequestBody @Valid TaskRequest taskRequest){
         LOGGER.info("POST REQUEST ");
-        return new ResponseEntity<>(taskService.createNewTask(task), HttpStatus.CREATED);
+        return new ResponseEntity<>(taskService.createNewTask(taskRequest.toEntity()), HttpStatus.CREATED);
     }
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<Task>> listerToutesLesTasks(){
-        LOGGER.info("GEt REQUEST");
+    public ResponseEntity<List<TaskResponse>> listerToutesLesTasks(){
+        LOGGER.info("GET request - lister toutes les tasks");
         return new ResponseEntity<>(taskService.getAllTask(), HttpStatus.OK);
     }
 
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<Task> recupererUneTask(@PathVariable Long id){
-        LOGGER.info("GEt REQUEST");
-        return new ResponseEntity<>(taskService.getTaskById(id), HttpStatus.OK);
+    public ResponseEntity<TaskResponse> recupererUneTask(@PathVariable Long id){
+        LOGGER.info("GET REQUEST - recuperer une task");
+        var response = taskService.getTaskById(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> miseAJourTask(@PathVariable Long id, @RequestParam String newTitle){
-        LOGGER.info("PUT REQUEST - id : {}, newTitle : {}", id, newTitle);
-        return new ResponseEntity(taskService.updateTask(id, newTitle), HttpStatus.OK);
+    public ResponseEntity<TaskResponse> miseAJourTask(@PathVariable Long id, @RequestBody TaskRequest taskRequest){
+        LOGGER.info("PUT REQUEST - mise à jour task");
+        return new ResponseEntity<>(taskService.updateTask(id, taskRequest), HttpStatus.OK);
     }
 
     @DeleteMapping("/tasks/{id}")
-    public ResponseEntity<String> supprimerTaskk(@PathVariable Long id){
+    public ResponseEntity<String> supprimerTask(@PathVariable Long id){
         LOGGER.info("DELETE REQUEST ");
         taskService.deleteTask(id);
-        return new ResponseEntity("File delete", HttpStatus.OK);
+        return new ResponseEntity<>("File delete", HttpStatus.OK);
     }
 }
